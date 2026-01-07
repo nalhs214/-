@@ -1,0 +1,71 @@
+#include "hw_init.h"
+#include "motor.h"   // PWM1_OFF/PWM2_OFF 사용
+
+void port_init()
+{
+  TRISD0=0;   // Ultrasonic Trig
+  TRISD1=1;   // Ultrasonic Echo1
+  TRISD2=1;   // Ultrasonic Echo2
+  TRISD3=1;   // Ultrasonic Echo3
+
+  TRISB4=0;   // Motor 1 (Left Motor)
+  TRISB5=0;   // Motor 1 (Left Motor)
+  TRISB6=0;   // Motor 2  (Right Motor)
+  TRISB7=0;   // Motor 2  (Right Motor)
+
+  TRISC1=0;   //ccp2
+  TRISC2=0;   //ccp1
+
+  TRISB0=1;    //ULTRASONIC Echo output (원본 유지)
+
+  PD0=0;
+
+  //Motor
+  PB4=0;
+  PB5=0;
+  PB6=0;
+  PB7=0;
+}
+
+void PWM_init()
+{
+  //PWM Freq.=4.88KHz, 100% duty=1023
+  T2CON=0x05;
+  PR2=255;
+
+  PWM1_OFF();
+  PWM2_OFF();
+}
+
+void UltraSound_init()
+{
+  PD1 = 0; //Echo (원본 유지)
+  PD2 = 0; //Echo
+  PD3 = 0; //Echo
+
+  T1CON = 0x80;
+}
+
+void servo_setting()
+{
+  //servo pin
+  TRISA5=0;
+  PA5=0;
+
+  //Timer0 13msec(8bit max), unenable state
+  T0CON=0x77;
+  TMR0L=0x00;
+
+  //Timer1 -> (원본은 Timer3 사용 세팅이지만 그대로 유지)
+  T3CON = 0x80;
+  TMR3H = 0xFF;
+  TMR3L = 0xCE;
+  TMR3IF = 0;
+
+  //Interrupt
+  TMR0IF=0;
+  TMR0IE=1;
+  TMR0IP=1;
+
+  TMR0ON=1;
+}

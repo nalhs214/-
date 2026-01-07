@@ -1,0 +1,152 @@
+#include "ultrasonic.h"
+#include "robot_motion.h"
+#include "motor.h"
+#include "uart_cmd.h"
+
+void Trigger_High_Pulse_10us()
+{
+  PD0 = 1;
+  delay_us(10);
+  PD0 = 0;
+}
+
+long Ult1_op()
+{
+  long k,distance_value;
+  char T1H,T1L;
+
+  Trigger_High_Pulse_10us();
+
+  while(PD1==0);
+  T1CON0=1;
+  TMR1H=0x00;
+  TMR1L=0x00;
+
+  while(PD1==1);
+
+  T1L=TMR1L;
+  T1H=TMR1H;
+
+  k=(long)(TMR1L & 0xff)+(TMR1H & 0xff)*0x100;
+
+  T1CON0=0;
+
+  distance_value=((0.0068)*k)/2;
+
+  return distance_value;
+}
+
+long Ult2_op()
+{
+  long k,distance_value;
+  char T1H,T1L;
+
+  Trigger_High_Pulse_10us();
+
+  while(PD2==0);
+  T1CON0=1;
+  TMR1H=0x00;
+  TMR1L=0x00;
+
+  while(PD2==1);
+
+  T1L=TMR1L;
+  T1H=TMR1H;
+
+  k=(long)(TMR1L & 0xff)+(TMR1H & 0xff)*0x100;
+
+  T1CON0=0;
+
+  distance_value=((0.0068)*k)/2;
+
+  return distance_value;
+}
+
+long Ult3_op()
+{
+  long k,distance_value;
+  char T1H,T1L;
+
+  Trigger_High_Pulse_10us();
+
+  while(PD3==0);
+  T1CON0=1;
+  TMR1H=0x00;
+  TMR1L=0x00;
+
+  while(PD3==1);
+
+  T1L=TMR1L;
+  T1H=TMR1H;
+
+  k=(long)(TMR1L & 0xff)+(TMR1H & 0xff)*0x100;
+
+  T1CON0=0;
+
+  distance_value=((0.0068)*k)/2;
+
+  return distance_value;
+}
+
+long decide(int ult_data1, int ult_data2, int ult_data3)
+{
+  long decide_ultData;
+
+  if(ult_data1>50)
+  {
+    if((ult_data2>50 && ult_data3>50) || (ult_data2<3) || (ult_data3<3))
+      Robot_Stop();
+
+    else if((ult_data2<50 && ult_data2>3) && ult_data3>50)
+    {
+      rcv_buf[3] = '3';
+      Rmotor_Forward();
+      rcv_buf[3] = '2';
+      Lmotor_Forward();
+    }
+    else if((ult_data3<50 && ult_data3>3) && ult_data2>50)
+    {
+      rcv_buf[3] = '2';
+      Rmotor_Forward();
+      rcv_buf[3] = '3';
+      Lmotor_Forward();
+    }
+  }
+  else if (ult_data1<50 && ult_data1>3)
+  {
+    if((ult_data2<3) || (ult_data3<3))
+      Robot_Stop();
+
+    else if((ult_data2<50 && ult_data2>3) && ult_data3>50)
+    {
+      rcv_buf[3] = '3';
+      Rmotor_Forward();
+      rcv_buf[3] = '2';
+      Lmotor_Forward();
+    }
+    else if((ult_data3<50 && ult_data3>3) && ult_data2>50)
+    {
+      rcv_buf[3] = '2';
+      Rmotor_Forward();
+      rcv_buf[3] = '3';
+      Lmotor_Forward();
+    }
+    else if((ult_data3<50 && ult_data3>3) && (ult_data2<50 && ult_data2>3))
+    {
+      rcv_buf[3] = '3';
+      Rmotor_Forward();
+      rcv_buf[3] = '3';
+      Lmotor_Forward();
+    }
+    else if((ult_data3>50) && (ult_data2>50))
+    {
+      rcv_buf[3] = '3';
+      Rmotor_Forward();
+      rcv_buf[3] = '3';
+      Lmotor_Forward();
+    }
+  }
+  else if(ult_data1<3) Robot_Stop();
+
+  return decide_ultData;
+}

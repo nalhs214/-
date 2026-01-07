@@ -1,0 +1,13 @@
+#ifndef UART_CMD_H
+#define UART_CMD_H
+
+#include "config.h"
+
+extern volatile char rcv_buf[5];
+extern volatile char rcv_data;
+extern volatile int rcv_success;
+extern volatile int rcv_cnt;
+
+void uart_cmd_init(void);
+
+#endif

@@ -1,0 +1,180 @@
+#include "robot_motion.h"
+#include "uart_cmd.h"
+#include "motor.h"
+
+long DurationToData()
+{
+  long data;
+
+  if(rcv_buf[2]=='0')      data=one_duration*1;
+  else if (rcv_buf[2]=='1') data=one_duration*2;
+  else if (rcv_buf[2]=='2') data=one_duration*3;
+  else if (rcv_buf[2]=='3') data=one_duration*4;
+  else if (rcv_buf[2]=='4') data=one_duration*5;
+  else if (rcv_buf[2]=='5') data=one_duration*6;
+  else if (rcv_buf[2]=='6') data=one_duration*7;
+  else if (rcv_buf[2]=='7') data=one_duration*8;
+  else if (rcv_buf[2]=='8') data=one_duration*9;
+  else if (rcv_buf[2]=='9') data=one_duration*10;
+
+  return data;
+}
+
+void RobotForward()
+{
+  Lmotor_Forward();
+  Rmotor_Forward();
+}
+
+void RobotBackward()
+{
+  Lmotor_Backward();
+  Rmotor_Backward();
+}
+
+void Robot_Stop()
+{
+  int b;
+
+  for(b=400;b>200;b--){
+    LmotorDutyValue(b);
+    RmotorDutyValue(b);
+    delay_ms(10);
+  }
+
+  PWM1_OFF();
+  PWM2_OFF();
+
+  PB4=0; PB5=0; PB6=0; PB7=0;
+}
+
+void Robot_Forward()
+{
+  long dr_data;
+
+  // 원본 Promised Action 그대로 유지(원본의 rcv_buf[2] 중복 대입도 그대로 둠)
+  if(rcv_buf[1] == 'F' && rcv_buf[2] == 'F' && rcv_buf[3] == 'F')
+  {
+    rcv_buf[1] = '1';
+    rcv_buf[2] = '9';
+    rcv_buf[2] = '4';
+  }
+
+  if(rcv_buf[1]== '1') {
+    RobotForward();
+  }
+  if(rcv_buf[1]== '0')  {
+    RobotForward();
+    dr_data = DurationToData();
+    delay_ms(dr_data);
+    Robot_Stop();
+  }
+}
+
+void Robot_Backward()
+{
+  long dr_data;
+
+  if(rcv_buf[1]== '1') {
+    RobotBackward();
+  }
+  if(rcv_buf[1]== '0')  {
+    RobotBackward();
+    dr_data = DurationToData();
+    delay_ms(dr_data);
+    Robot_Stop();
+  }
+}
+
+void RobotRTurn()
+{
+  Rmotor_Backward();
+  Lmotor_Forward();
+}
+
+void RobotLTurn()
+{
+  Lmotor_Backward();
+  Rmotor_Forward();
+}
+
+long get_TwentyDegree_msec()
+{
+  long TwentyDegree_msec;
+
+  if(rcv_buf[3]=='1')      TwentyDegree_msec = Vel1_TwentyDegree_msec;
+  else if(rcv_buf[3]=='2') TwentyDegree_msec = Vel2_TwentyDegree_msec;
+  else if(rcv_buf[3]=='3') TwentyDegree_msec = Vel3_TwentyDegree_msec;
+  else if(rcv_buf[3]=='4') TwentyDegree_msec = Vel4_TwentyDegree_msec;
+  else if(rcv_buf[3]=='5') TwentyDegree_msec = Vel5_TwentyDegree_msec;
+
+  return TwentyDegree_msec;
+}
+
+long AnglenToData(long TwentyDegree_msec)
+{
+  long data;
+
+  if(rcv_buf[2]=='0')      data=TwentyDegree_msec*1;
+  else if (rcv_buf[2]=='1') data=TwentyDegree_msec*2;
+  else if (rcv_buf[2]=='2') data=TwentyDegree_msec*3;
+  else if (rcv_buf[2]=='3') data=TwentyDegree_msec*4;
+  else if (rcv_buf[2]=='4') data=TwentyDegree_msec*5;
+  else if (rcv_buf[2]=='5') data=TwentyDegree_msec*6;
+  else if (rcv_buf[2]=='6') data=TwentyDegree_msec*7;
+  else if (rcv_buf[2]=='7') data=TwentyDegree_msec*8;
+  else if (rcv_buf[2]=='8') data=TwentyDegree_msec*9;
+  else if (rcv_buf[2]=='9') data=TwentyDegree_msec*10;
+
+  return data;
+}
+
+void Robot_RTurn()
+{
+  long TwentyDegree_time, agl_time;
+
+  if(rcv_buf[1]=='1')
+  {
+    RobotRTurn();
+  }
+  else if(rcv_buf[1]=='1') // 원본 그대로 유지
+  {
+    TwentyDegree_time = get_TwentyDegree_msec();
+    agl_time = AnglenToData(TwentyDegree_time);
+
+    if(agl_time == 0) RobotRTurn();
+    else {
+      RobotRTurn();
+      delay_ms(agl_time);
+      Robot_Stop();
+    }
+  }
+}
+
+void Robot_LTurn()
+{
+  long TwentyDegree_time, agl_time;
+
+  if(rcv_buf[1]=='1')
+  {
+    RobotLTurn();
+  }
+  else if(rcv_buf[1] == 'L' && rcv_buf[2] == 'L' && rcv_buf[3] == 'L')
+  {
+    rcv_buf[1] = '1';
+    rcv_buf[2] = '5';
+    rcv_buf[3] = '2';
+  }
+  else if(rcv_buf[1]=='0')
+  {
+    TwentyDegree_time = get_TwentyDegree_msec();
+    agl_time = AnglenToData(TwentyDegree_time);
+
+    if(agl_time == 0) RobotLTurn();
+    else {
+      RobotLTurn();
+      delay_ms(agl_time);
+      Robot_Stop();
+    }
+  }
+}

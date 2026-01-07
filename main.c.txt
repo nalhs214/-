@@ -1,0 +1,166 @@
+#include "config.h"
+
+#include "hw_init.h"
+#include "uart_cmd.h"
+#include "motor.h"
+#include "robot_motion.h"
+#include "servo.h"
+//#include "ultrasonic.h"  // 필요 시 활성화
+
+//Reset Vector Address
+#build(reset=0x200)
+//Intterupts Vector Address
+#build(interrupt=0x208)
+
+//Bootloader Area
+#org 0x0000,0x01ff
+void bootloader()
+{
+#asm
+nop
+#endasm
+}
+
+void main()
+{
+  long i;
+  int a=0;
+  int c=0;
+
+  port_init();
+  PWM_init();
+  servo_setting();
+
+  uart_cmd_init();
+
+  Robot_Stop();
+
+  while(TRUE)
+  {
+    if(!rcv_success)
+    {
+      if(rcv_buf[0] =='F')
+      {
+        Robot_Forward();
+        rcv_success = 1;
+      }
+      else if(rcv_buf[0] == 'B')
+      {
+        Robot_Backward();
+        rcv_success = 1;
+      }
+      else if(rcv_buf[0] == 'R')
+      {
+        Robot_RTurn();
+        rcv_success = 1;
+      }
+      else if(rcv_buf[0] == 'L')
+      {
+        Robot_LTurn();
+        rcv_success = 1;
+      }
+      else if(rcv_buf[0] == 'S')
+      {
+        Robot_Stop();
+        rcv_success = 1;
+      }
+      else if(rcv_buf[0] == 'Q')
+      {
+        servoTargetValue = Servo_left;
+        servoValue=adjust_servo_value(servoValue, servoTargetValue);
+        for(i=0;i<56;i++){
+          set_servo_PWM(servoValue);
+        }
+
+        servoTargetValue = Servo_stop;
+        servoValue=adjust_servo_value(servoValue, servoTargetValue);
+        set_servo_PWM(servoValue);
+
+        rcv_success = 1;
+      }
+      else if(rcv_buf[0] == 'P')
+      {
+        servoTargetValue = Servo_right;
+        servoValue=adjust_servo_value(servoValue, servoTargetValue);
+        for(i=0;i<50;i++){
+          set_servo_PWM(servoValue);
+        }
+
+        servoTargetValue = Servo_stop;
+        servoValue=adjust_servo_value(servoValue, servoTargetValue);
+        set_servo_PWM(servoValue);
+
+        rcv_success = 1;
+      }
+      else if(rcv_buf[0] == 'C')
+      {
+        PWM1_ON();
+        PWM2_ON();
+
+        PB4=0; PB5=1; PB6=0; PB7=1;
+
+        LmotorDutyValue(700);
+        RmotorDutyValue(700);
+        delay_ms(1500);
+
+        PB4=1; PB5=0; PB6=1; PB7=0;
+
+        LmotorDutyValue(700);
+        RmotorDutyValue(700);
+        delay_ms(1500);
+
+        for(c=600;c>200;c--){
+          LmotorDutyValue(c);
+          RmotorDutyValue(c);
+          delay_ms(10);
+        }
+
+        PWM1_OFF();
+        PWM2_OFF();
+
+        PB4=0; PB5=0; PB6=0; PB7=0;
+
+        servoTargetValue = Servo_left;
+        servoValue=adjust_servo_value(servoValue, servoTargetValue);
+        for(i=0;i<56;i++){
+          set_servo_PWM(servoValue);
+        }
+
+        servoTargetValue = Servo_stop;
+        servoValue=adjust_servo_value(servoValue, servoTargetValue);
+        set_servo_PWM(servoValue);
+
+        delay_ms(500);
+
+        servoTargetValue = Servo_right;
+        servoValue=adjust_servo_value(servoValue, servoTargetValue);
+        for(i=0;i<50;i++){
+          set_servo_PWM(servoValue);
+        }
+
+        servoTargetValue = Servo_stop;
+        servoValue=adjust_servo_value(servoValue, servoTargetValue);
+        set_servo_PWM(servoValue);
+
+        rcv_success = 1;
+      }
+
+      /*
+      // 원본 초음파 회피 루틴(주석 유지)
+      Ult1_data = Ult1_op();
+      Ult2_data = Ult2_op();
+      Ult3_data = Ult3_op();
+
+      if(((Ult1_data<20)&&(Ult2_data<20))||((Ult2_data<20)&&(Ult3_data<20))||((Ult3_data<20)&&(Ult1_data<20)))
+      {
+        if(a==20)
+        {
+          Robot_Stop();
+          a=0;
+        }
+        a++;
+      }
+      */
+    }
+  }
+}

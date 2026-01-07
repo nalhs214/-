@@ -1,0 +1,73 @@
+#include "servo.h"
+
+long servoValue = 100;
+long servoTargetValue;
+
+void timer3_10usec()
+{
+  TMR3H = 0xFF;
+  TMR3L = 0xCE;
+  TMR3ON=1;
+  while(!TMR3IF);
+  TMR3ON=0;
+  TMR3IF = 0;
+}
+
+void timer3_5msec()
+{
+  TMR3H = 0x9E;
+  TMR3L = 0x57;
+  TMR3ON=1;
+  while(!TMR3IF);
+  TMR3ON=0;
+  TMR3IF = 0;
+}
+
+void set_servo_PWM(long duty)
+{
+  long pulseH, pulseL;
+
+  PA5=1;
+  for(pulseH=0;pulseH<duty;pulseH++)
+  {
+    timer3_10usec();
+  }
+
+  PA5=0;
+  for(pulseL=duty;pulseL<2000;pulseL++)
+  {
+    timer3_10usec();
+  }
+}
+
+int set_servo_value_up(int nowUp, int targetUp)
+{
+  int valueUp;
+  for(valueUp=nowUp; valueUp<=targetUp; valueUp++)
+  {
+    set_servo_PWM(valueUp);
+  }
+  nowUp = valueUp;
+  return nowUp;
+}
+
+int set_servo_value_down(int nowD, int targetD)
+{
+  int valueD;
+  for(valueD=nowD; valueD>=targetD; valueD--)
+  {
+    set_servo_PWM(valueD);
+  }
+  nowD = valueD;
+  return nowD;
+}
+
+int adjust_servo_value(int recentValue, int targetValue)
+{
+  if(recentValue>targetValue)
+    recentValue = set_servo_value_down(recentValue, targetValue);
+  else
+    recentValue = set_servo_value_up(recentValue, targetValue);
+
+  return recentValue;
+}

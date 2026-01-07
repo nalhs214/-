@@ -1,0 +1,92 @@
+#include "motor.h"
+#include "uart_cmd.h" // rcv_buf 참조
+
+void PWM1_ON()  { CCP1CON=0x0c; }
+void PWM2_ON()  { CCP2CON=0x0c; }
+void PWM1_OFF() { CCP1CON=0x00; }
+void PWM2_OFF() { CCP2CON=0x00; }
+
+long VelocityToData()
+{
+  long data;
+
+  putc(rcv_buf[3]);
+
+  if(rcv_buf[3]=='1')      data= Move_VSLOW;
+  else if (rcv_buf[3]=='2') data=Move_FAST;
+  else if (rcv_buf[3]=='3') data=Move_MEDIUM;
+  else if (rcv_buf[3]=='4') data=Move_FAST;
+  else                      data=Move_VFAST;
+
+  return data;
+}
+
+void LmotorDutyValue(long duty_data)
+{
+  long value;
+  value=duty_data;
+
+  DC1B0=(short)duty_data;
+  DC1B1=(short)(duty_data>>1);
+  CCPR1L=(unsigned int)(value >> 2);
+}
+
+void RmotorDutyValue(long duty_data)
+{
+  long value;
+  value=duty_data;
+
+  DC2B0=(short)duty_data;
+  DC2B1=(short)(duty_data>>1);
+  CCPR2L=(unsigned int)(value >> 2);
+}
+
+void Lmotor_Forward()
+{
+  long data;
+
+  PWM1_ON();
+
+  PB4=0;
+  PB5=1;
+
+  data=VelocityToData();
+  LmotorDutyValue(data);
+}
+
+void Rmotor_Forward()
+{
+  long data;
+
+  PWM2_ON();
+
+  PB6=1;
+  PB7=0;
+
+  data=VelocityToData();
+  RmotorDutyValue(data);
+}
+
+void Lmotor_Backward()
+{
+  long data;
+
+  PB4=1;
+  PB5=0;
+
+  PWM1_ON();
+  data=VelocityToData();
+  LmotorDutyValue(data);
+}
+
+void Rmotor_Backward()
+{
+  long data;
+
+  PB6=0;
+  PB7=1;
+
+  PWM2_ON();
+  data=VelocityToData();
+  RmotorDutyValue(data);
+}

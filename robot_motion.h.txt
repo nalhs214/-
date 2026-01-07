@@ -1,0 +1,24 @@
+#ifndef ROBOT_MOTION_H
+#define ROBOT_MOTION_H
+
+#include "config.h"
+
+long DurationToData(void);
+long AnglenToData(long TwentyDegree_msec);
+long get_TwentyDegree_msec(void);
+
+void Robot_Forward(void);
+void Robot_Backward(void);
+
+void RobotForward(void);
+void RobotBackward(void);
+
+void Robot_Stop(void);
+
+void Robot_RTurn(void);
+void Robot_LTurn(void);
+
+void RobotRTurn(void);
+void RobotLTurn(void);
+
+#endif

@@ -1,0 +1,58 @@
+#include "uart_cmd.h"
+
+volatile char rcv_buf[5];
+volatile char rcv_data;
+
+volatile int rcv_success=1, finish=1; // finish는 main에서 쓸 수 있으나 원본 유지
+volatile int rcv_cnt = 0;
+
+void uart_cmd_init(void)
+{
+  enable_interrupts(int_rda);
+  enable_interrupts(global);
+}
+
+#int_rda
+void rda_isr()
+{
+  rcv_data = getc();
+
+  switch(rcv_cnt)
+  {
+     case 0:
+        if(rcv_data == 'F'|| rcv_data == 'B' || rcv_data == 'S'
+        || rcv_data == 'R' || rcv_data == 'L' || rcv_data == 'C'
+        || rcv_data == 'Q' || rcv_data == 'P' || rcv_data == 'Y')
+        {
+           rcv_buf[rcv_cnt] = rcv_data;
+           rcv_cnt = 1;
+        }
+        break;
+
+     case 1 :
+        if((rcv_data >= '0' && rcv_data <= '9') || rcv_data =='F' || rcv_data =='L')
+        {
+           rcv_buf[rcv_cnt] = rcv_data;
+           rcv_cnt = 2;
+        }
+        break;
+
+     case 2 :
+        if((rcv_data >= '0' && rcv_data <= '9') || rcv_data =='F' || rcv_data =='L')
+        {
+           rcv_buf[rcv_cnt] = rcv_data;
+           rcv_cnt = 3;
+        }
+        break;
+
+     case 3 :
+        if((rcv_data >= '0' && rcv_data <= '9') || rcv_data =='F' || rcv_data =='L')
+        {
+           rcv_buf[rcv_cnt] = rcv_data;
+           rcv_success = 0;
+        }
+        rcv_cnt = 0;
+        rcv_data = 0;
+        break;
+  }
+}

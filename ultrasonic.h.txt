@@ -1,0 +1,14 @@
+#ifndef ULTRASONIC_H
+#define ULTRASONIC_H
+
+#include "config.h"
+
+void Trigger_High_Pulse_10us(void);
+
+long Ult1_op(void);
+long Ult2_op(void);
+long Ult3_op(void);
+
+long decide(int ult_data1, int ult_data2, int ult_data3);
+
+#endif

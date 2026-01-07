@@ -1,0 +1,20 @@
+#ifndef MOTOR_H
+#define MOTOR_H
+
+#include "config.h"
+
+void PWM1_ON(void);
+void PWM2_ON(void);
+void PWM1_OFF(void);
+void PWM2_OFF(void);
+
+void Lmotor_Forward(void);
+void Rmotor_Forward(void);
+void Lmotor_Backward(void);
+void Rmotor_Backward(void);
+
+long VelocityToData(void);
+void LmotorDutyValue(long duty_data);
+void RmotorDutyValue(long duty_data);
+
+#endif

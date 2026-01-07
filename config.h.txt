@@ -1,0 +1,33 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#include <18F452.h>
+#include <myreg.h>
+
+#FUSES NOWDT, HS, PUT, NOPROTECT, NOBROWNOUT, NOCPD, NODEBUG
+#device *=16 ADC =10
+#use delay(clock=20000000)
+#use rs232(baud=9600, parity=N, xmit=PIN_C6, rcv=PIN_C7)
+
+#include <stdio.h>
+
+// 속도 정의 (원본 유지)
+#define  Move_VFAST  900
+#define  Move_FAST   800
+#define  Move_MEDIUM 700
+#define  Move_SLOW   600
+#define  Move_VSLOW  470
+
+#define  one_duration 500
+
+#define  Vel1_TwentyDegree_msec  672
+#define  Vel2_TwentyDegree_msec  480
+#define  Vel3_TwentyDegree_msec  384
+#define  Vel4_TwentyDegree_msec  297
+#define  Vel5_TwentyDegree_msec  0
+
+#define Servo_left  60
+#define Servo_right 140
+#define Servo_stop  100
+
+#endif

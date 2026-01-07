@@ -1,0 +1,11 @@
+#ifndef HW_INIT_H
+#define HW_INIT_H
+
+#include "config.h"
+
+void port_init(void);
+void PWM_init(void);
+void UltraSound_init(void);
+void servo_setting(void);
+
+#endif

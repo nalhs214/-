@@ -1,0 +1,18 @@
+#ifndef SERVO_H
+#define SERVO_H
+
+#include "config.h"
+
+extern long servoValue;
+extern long servoTargetValue;
+
+void timer3_10usec(void);
+void timer3_5msec(void);
+
+void set_servo_PWM(long duty);
+
+int set_servo_value_up(int nowUp, int targetUp);
+int set_servo_value_down(int nowD, int targetD);
+int adjust_servo_value(int recentValue, int targetValue);
+
+#endif
